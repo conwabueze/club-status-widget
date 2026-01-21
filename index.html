@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Time - Club Status Indicator</title>
+    <style>
+        /* =========================================
+           GLOBAL & SHARED STYLES (Life Time Theme)
+           Adapted from "Absence Widget" reference
+           ========================================= */
+        :root {
+            /* LIFE TIME PALETTE */
+            --lt-black: #232323;
+            --lt-gold: #C5B358;
+            --lt-silver: #F2F2F2;
+            --lt-white: #FFFFFF;
+            --lt-red: #d9534f;
+            --lt-green: #2e7d32;
+            --lt-orange: #f57f17;
+
+            /* FUNCTIONAL COLORS */
+            --status-normal: #2e7d32;
+            --status-warning: #f57f17;
+            --status-closed: #d9534f;
+            --overlay-bg: rgba(0, 0, 0, 0.7);
+
+            /* SHARED */
+            --text-dark: #1f2937;
+            --text-medium: #4b5563;
+            --text-light: #9ca3af;
+            --bg-color: #FFFFFF;
+            --card-bg: #ffffff;
+            --font-stack: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-stack);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            color: var(--lt-black);
+        }
+
+        .plugin-wrapper {
+            width: 100%;
+            max-width: 414px; /* Mobile width */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* =========================================
+           COMPONENT: CARDS
+           ========================================= */
+        .dashboard-card {
+            background-color: var(--card-bg);
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            position: relative;
+            border-top: 4px solid var(--lt-black);
+        }
+
+        .card-padding {
+            padding: 20px 24px;
+        }
+
+        .section-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* =========================================
+           SECTION 1: PULSE (STATUS & MOD)
+           ========================================= */
+        .status-bar {
+            background-color: var(--lt-silver);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--status-normal);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(46, 125, 50, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--lt-black);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .location-text {
+            font-size: 12px;
+            color: var(--text-medium);
+            margin-left: auto;
+        }
+
+        .mod-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .mod-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--lt-black);
+            color: var(--lt-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            border: 2px solid var(--lt-gold);
+        }
+
+        .mod-info h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--lt-black);
+        }
+
+        .mod-info span {
+            font-size: 12px;
+            color: var(--lt-gold);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .btn-call {
+            background: var(--lt-black);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .btn-call:hover {
+            opacity: 0.9;
+        }
+
+        .emergency-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .btn-emergency {
+            background: #fff;
+            border: 1px solid var(--lt-red);
+            color: var(--lt-red);
+            padding: 10px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn-emergency.filled {
+            background: var(--lt-red);
+            color: white;
+        }
+
+        /* =========================================
+           SECTION 2: ACTION GRID
+           ========================================= */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px; /* Creates borders */
+            background-color: #e5e5e5; /* Border color */
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .action-btn {
+            background: white;
+            border: none;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #fafafa;
+        }
+
+        .action-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--lt-black);
+            stroke-width: 1.5;
+        }
+
+        .action-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--lt-black);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* =========================================
+           SECTION 3: SCOREBOARD (KPIs)
+           ========================================= */
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .stat-group {
+            text-align: left;
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 300;
+            color: var(--lt-black);
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .stat-sub {
+            font-size: 13px;
+            color: var(--lt-gold);
+            font-weight: 600;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: #e5e5e5;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--lt-gold);
+            border-radius: 3px;
+        }
+
+        /* =========================================
+           SECTION 4: NEWS FEED
+           ========================================= */
+        .news-item {
+            display: flex;
+            gap: 12px;
+            padding: 16px 0;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+        }
+
+        .news-item:last-child {
+            border-bottom: none;
+        }
+
+        .news-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--lt-silver);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+
+        .news-content h4 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            color: var(--lt-black);
+            font-weight: 600;
+        }
+
+        .news-content p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-medium);
+            line-height: 1.4;
+        }
+
+        .ticker-wrap {
+            background: var(--lt-black);
+            color: white;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ticker-label {
+            color: var(--lt-gold);
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        /* =========================================
+           MODALS (Shared Logic)
+           ========================================= */
+        .modal-backdrop {
+            position: fixed; /* Fixed to viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--overlay-bg);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background-color: white;
+            width: 100%;
+            max-width: 414px; /* Match main wrapper */
+            border-radius: 12px 12px 0 0;
+            padding: 24px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-backdrop.active .modal-card {
+            transform: translateY(0);
+        }
+        
+        /* Red Header for Emergency Modal */
+        .modal-header-red {
+            border-bottom: 2px solid var(--lt-red);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+        
+        .modal-header-red h3 {
+            color: var(--lt-red);
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .script-text {
+            background: #fff5f5;
+            padding: 15px;
+            border-left: 4px solid var(--lt-red);
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--lt-black);
+            margin-bottom: 20px;
+        }
+
+        .btn-full-width {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary { background: var(--lt-black); color: white; }
+        .btn-danger { background: var(--lt-red); color: white; }
+        .btn-secondary { background: white; border: 1px solid #ddd; color: var(--text-medium); }
+
+        /* SVG Utility Class */
+        .icon {
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="plugin-wrapper">
+        
+        <!-- 1. THE PULSE (Status & Safety) -->
+        <div class="dashboard-card">
+            <div class="status-bar">
+                <div class="status-dot"></div>
+                <div class="status-text">Normal Operations</div>
+                <div class="location-text">Evanston, IL</div>
+            </div>
+
+            <div class="card-padding">
+                <div class="section-header">Manager On Duty</div>
+                
+                <div class="mod-section">
+                    <div class="mod-profile">
+                        <div class="avatar-circle">SJ</div>
+                        <div class="mod-info">
+                            <h3>Sarah Jenkins</h3>
+                        </div>
+                    </div>
+                    <button class="btn-call" onclick="alert('Calling Sarah Jenkins...')">
+                        <!-- Phone Icon -->
+                        <svg class="icon" width="14" height="14" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        Radio / Call
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. THE SCOREBOARD (KPIs) -->
+        <div class="dashboard-card card-padding">
+            <div class="section-header">
+                <span>Club Performance</span>
+                <span style="color:var(--lt-gold)">Goal: Diamond</span>
+            </div>
+            
+            <div class="stats-row">
+                <div class="stat-group">
+                    <div class="section-header" style="margin-bottom:0; font-size:10px;">NPS Score</div>
+                    <div class="stat-value">72</div>
+                    <span class="stat-sub">Target: 75 (+3 Needed)</span>
+                </div>
+                <!-- Mini Gauge Visual using border-radius and conic gradient simulation via borders -->
+                <div style="width: 60px; height: 60px; border-radius: 50%; border: 4px solid #eee; border-top-color: var(--lt-gold); border-right-color: var(--lt-gold); transform: rotate(-45deg);"></div>
+            </div>
+
+            <!-- REPLACED REVENUE WITH NEW MEMBER JOINS (LEADS) -->
+            <div style="margin-top: 20px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+                <div class="section-header" style="margin-bottom:8px; font-size:10px;">New Member Joins (Leads)</div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div>
+                        <div style="font-size:32px; font-weight:300; color:var(--lt-black); letter-spacing:-1px; line-height:1;">150</div>
+                        <span style="font-size:12px; color:var(--text-medium); display:block; margin-top:6px;">Joined this week</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="background:#e8f5e9; color:var(--lt-green); padding:6px 10px; border-radius:4px; font-size:11px; font-weight:700;">High Opportunity</span>
+                        <div style="font-size:10px; color:var(--text-light); margin-top:6px;">150 Potential Clients</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- =========================================
+         MODALS
+         ========================================= -->
+
+    <script>
+        // === GENERIC MODAL LOGIC ===
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.add('active');
+            }
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        // Close when clicking outside content
+        document.querySelectorAll('.modal-backdrop').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
